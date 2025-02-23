@@ -1,8 +1,12 @@
 package com.mq.rocket;
 
+import org.apache.rocketmq.client.apis.ClientConfiguration;
+import org.apache.rocketmq.client.apis.ClientException;
 import org.apache.rocketmq.client.apis.ClientServiceProvider;
 import org.apache.rocketmq.client.apis.message.Message;
+import org.apache.rocketmq.client.apis.producer.Producer;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 /**
@@ -13,7 +17,14 @@ public class RocketMqDemo {
 
     private final static String TOPIC = "test";
 
+    public static final ClientConfiguration CONFIGURATION = ClientConfiguration.newBuilder()
+            .setEndpoints("http://localhost:8080")
+            .build();
+
     public static void main(String[] args) {
+        final RocketMqDemo rocketMqDemo = new RocketMqDemo();
+        final ClientServiceProvider productServer = rocketMqDemo.getProductServer();
+        rocketMqDemo.sendMessage(productServer, rocketMqDemo.builtMessage(productServer, "hello rocket mq"));
     }
 
     private ClientServiceProvider getProductServer() {
@@ -28,9 +39,13 @@ public class RocketMqDemo {
     }
 
     private void sendMessage(ClientServiceProvider client, Message msg) {
-        client.getProducerBuilder()
-                .setTransactionalMessageHook(new TransactionalMessageHook())
-                .build()
-                .send(msg);
+        try (final Producer producer = client.newProducerBuilder()
+                .setClientConfiguration(CONFIGURATION)
+                .build()) {
+            // send msg
+            producer.send(msg);
+        } catch (ClientException | IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
