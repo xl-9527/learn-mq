@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
  **/
 public class RocketMqDemo {
 
-    private final static String TOPIC = "test";
+    private final static String TOPIC = "test_topic";
 
     public void sendMessage(final String msg) {
         final ClientServiceProvider productServer = RocketMQConfig.getProductServer();
